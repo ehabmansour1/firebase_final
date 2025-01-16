@@ -4,7 +4,20 @@
 SpendWise is a user-friendly expense tracking web application designed to help individuals manage their finances efficiently.
 
 ---
+## **Technology Stack**
 
+### **Frontend:**
+- **HTML5, CSS3, Bootstrap**: For a responsive and modern user interface.
+- **Chart.js**: For dynamic and interactive data visualization.
+
+### **Backend & Database:**
+- **Firebase Firestore**: Real-time database to store and manage user expenses.
+- **Firebase Authentication**: Secure and scalable user authentication system.
+
+### **Integration:**
+- Authentication ensures that each user's data is private and secure.
+
+---
 ## **Key Features**
 
 ### **1. Dashboard Overview:**
@@ -30,20 +43,7 @@ SpendWise is a user-friendly expense tracking web application designed to help i
 
 ---
 
-## **Technology Stack**
 
-### **Frontend:**
-- **HTML5, CSS3, Bootstrap**: For a responsive and modern user interface.
-- **Chart.js**: For dynamic and interactive data visualization.
-
-### **Backend & Database:**
-- **Firebase Firestore**: Real-time database to store and manage user expenses.
-- **Firebase Authentication**: Secure and scalable user authentication system.
-
-### **Integration:**
-- Authentication ensures that each user's data is private and secure.
-
----
 
 ## **User Flow**
 
