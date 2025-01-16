@@ -14,6 +14,9 @@ SpendWise is a user-friendly expense tracking web application designed to help i
 ### **Backend & Database:**
 - **Firebase Firestore**: Real-time database to store and manage user expenses.
 - **Firebase Authentication**: Secure and scalable user authentication system.
+- 
+### **ERD:**
+![Custom Logo](https://hermans-ent.com/Blank%20diagram%20-%20Page%201.png)
 
 ### **Integration:**
 - Authentication ensures that each user's data is private and secure.
