@@ -16,7 +16,8 @@ SpendWise is a user-friendly expense tracking web application designed to help i
 - **Firebase Authentication**: Secure and scalable user authentication system.
 - 
 ### **ERD:**
-![Custom Logo](https://hermans-ent.com/Blank%20diagram%20-%20Page%201.png)
+![Custom Logo](https://hermans-ent.com/Blank%20diagram%20-%20Page%201%20(2).png)
+![Custom Logo](https://hermans-ent.com/Blank%20diagram%20-%20Page%201%20(1).png)
 
 ### **Integration:**
 - Authentication ensures that each user's data is private and secure.
