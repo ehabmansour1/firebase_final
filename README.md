@@ -1,4 +1,5 @@
-# SpendWise
+![Custom Logo](https://hermans-ent.com/Captureghg.PNG)
+
 
 SpendWise is a user-friendly expense tracking web application designed to help individuals manage their finances efficiently.
 
