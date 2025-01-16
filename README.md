@@ -21,23 +21,24 @@ SpendWise is a user-friendly expense tracking web application designed to help i
 ---
 ## **Key Features**
 
-### **1. Dashboard Overview:**
+### **1. User Authentication:**
+- Secure login and registration using **Firebase Authentication**.
+- Support for **Google sign-in** for seamless access.
+
+### **2. Dashboard Overview:**
 - Displays total expenses, daily average, highest expense, and total transactions in an intuitive layout.
 - Provides visual insights through interactive charts:
   - **Spending over time** (bar chart).
   - **Spending by category** (doughnut chart).
 
-### **2. Expense Management:**
+### **3. Expense Management:**
 - Users can add, view, edit, and delete expenses.
 - Expenses are categorized and timestamped for detailed analysis.
 
-### **3. Reports:**
+### **4. Reports:**
 - Detailed reports with filters for date range and categories.
 - Visual representation of financial data through charts to identify spending patterns.
 
-### **4. User Authentication:**
-- Secure login and registration using **Firebase Authentication**.
-- Support for **Google sign-in** for seamless access.
 
 ### **5. Profile Management:**
 - Users can update personal information, change passwords, and set currency preferences.
