@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - SpendWise</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a href="/" class="logo text-center">Spend<span>Wise.</span></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="expenses.html">Expenses</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="reports.html">Reports</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <img
+                  id="userAvatar"
+                  src="images/loading.gif"
+                  alt="User Avatar"
+                  style="width: 30px; height: 30px; border-radius: 50%"
+                />
+                <span id="username"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="profile.html">Profile</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" id="logoutBtn"
+                    >Logout</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-value">$0.00</div>
+            <div class="stat-label">Total Expenses</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-value">$0.00</div>
+            <div class="stat-label">Daily Average</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-value">$0.00</div>
+            <div class="stat-label">Highest Expense</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Total Transactions</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="report-card">
+            <h4>Spending by Category</h4>
+            <div class="chart-container">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="report-card">
+            <h4>Spending Over Time</h4>
+            <div class="chart-container">
+              <canvas id="timeChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+      import {
+        auth,
+        db,
+        onAuthStateChanged,
+        signOut,
+        getDocs,
+        query,
+        where,
+        doc,
+        getDoc,
+        collection,
+      } from "./javascript/firebase.js";
+
+      const updateCharts = async (userId) => {
+        const expensesRef = collection(db, "expenses");
+        const q = query(expensesRef, where("userId", "==", userId));
+        const snapshot = await getDocs(q);
+        let totalExpenses = 0;
+        let weeklyExpenses = [0, 0, 0, 0];
+        let highestExpense = 0;
+        let totalTransactions = 0;
+        let categoryTotals = {};
+        const today = new Date();
+        const startOfWeek = (daysAgo) => {
+          const date = new Date(today);
+          date.setDate(date.getDate() - daysAgo);
+          return date;
+        };
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const amount = parseFloat(data.amount);
+          const expenseDate = new Date(data.date);
+          totalExpenses += amount;
+          totalTransactions++;
+          if (expenseDate >= startOfWeek(0)) weeklyExpenses[3] += amount;
+          else if (expenseDate >= startOfWeek(7)) weeklyExpenses[2] += amount;
+          else if (expenseDate >= startOfWeek(14)) weeklyExpenses[1] += amount;
+          else if (expenseDate >= startOfWeek(21)) weeklyExpenses[0] += amount;
+          if (amount > highestExpense) highestExpense = amount;
+          categoryTotals[data.category] =
+            (categoryTotals[data.category] || 0) + amount;
+        });
+        const statCards = document.querySelectorAll(".stat-card .stat-value");
+        statCards[0].textContent = `$${totalExpenses.toFixed(2)}`;
+        statCards[1].textContent = `$${(
+          totalExpenses / totalTransactions
+        ).toFixed(2)}`;
+        statCards[2].textContent = `$${highestExpense.toFixed(2)}`;
+        statCards[3].textContent = totalTransactions;
+        updateCategoryChart(categoryTotals);
+        updateTimeChart(weeklyExpenses);
+      };
+
+      const updateCategoryChart = (categoryTotals) => {
+        const labels = Object.keys(categoryTotals);
+        const data = Object.values(categoryTotals);
+        new Chart(document.getElementById("categoryChart"), {
+          type: "doughnut",
+          data: {
+            labels,
+            datasets: [
+              {
+                data,
+                backgroundColor: [
+                  "#ffa97a",
+                  "#ff7c7c",
+                  "#70a1ff",
+                  "#7bed9f",
+                  "#a4b0be",
+                  "#ff6b81",
+                ],
+              },
+            ],
+          },
+        });
+      };
+
+      const updateTimeChart = (weeklyExpenses) => {
+        new Chart(document.getElementById("timeChart"), {
+          type: "bar",
+          data: {
+            labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+            datasets: [
+              {
+                label: "Spending ($)",
+                data: weeklyExpenses,
+                backgroundColor: "#ffa97a",
+                borderColor: "#ff7c7c",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById("username").textContent =
+              userData.username || "User";
+            document.getElementById("userAvatar").src =
+              userData.profilePicture || "images/person.jpg";
+            updateCharts(user.uid);
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      logoutBtn.addEventListener("click", async () => {
+        const confirmLogout = await Swal.fire({
+          title: "Are you sure?",
+          text: "You will be logged out of your account.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Logout",
+          cancelButtonText: "Cancel",
+        });
+
+        if (confirmLogout.isConfirmed) {
+          try {
+            await signOut(auth);
+            Swal.fire({
+              title: "Logged Out",
+              text: "You have successfully logged out.",
+              icon: "success",
+              confirmButtonText: "OK",
+            }).then(() => {
+              window.location.href = "login.html";
+            });
+          } catch (error) {
+            console.error("Error logging out:", error);
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to log out. Please try again.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

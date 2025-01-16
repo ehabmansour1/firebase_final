@@ -1,0 +1,377 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Expenses - SpendWise</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a href="/" class="logo text-center">Spend<span>Wise.</span></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="expenses.html">Expenses</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="reports.html">Reports</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <img
+                  id="userAvatar"
+                  src="images/loading.gif"
+                  alt="User Avatar"
+                  style="width: 30px; height: 30px; border-radius: 50%"
+                />
+                <span id="username"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="profile.html">Profile</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" id="logoutBtn"
+                    >Logout</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="expenses-container">
+        <div class="header-container">
+          <h2 class="mb-4">View Expenses</h2>
+          <a href="add-expense.html" class="btn-add-expense">Add Expenses</a>
+        </div>
+
+        <div class="filter-section">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Date Range</label>
+              <select class="form-select" id="dateFilter">
+                <option value="all">All Time</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Category</label>
+              <select class="form-select" id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="Groceries">Groceries</option>
+                <option value="Transport">Transport</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Bills">Bills</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Min Amount</label>
+              <input
+                type="number"
+                class="form-control"
+                id="minAmount"
+                placeholder="$0"
+              />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max Amount</label>
+              <input
+                type="number"
+                class="form-control"
+                id="maxAmount"
+                placeholder="Any"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table id="expensesTable" class="table table-hover">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Receipt</th>
+                <th>Notes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Receipt Image</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            <img src="" class="modal-image" alt="Receipt" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script type="module">
+      import {
+        auth,
+        db,
+        onAuthStateChanged,
+        signOut,
+      } from "./javascript/firebase.js";
+      import {
+        collection,
+        query,
+        where,
+        orderBy,
+        getDocs,
+        doc,
+        deleteDoc,
+        getDoc,
+      } from "./javascript/firebase.js";
+
+      let table;
+      let currentUser;
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          currentUser = user;
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById("username").textContent =
+              userData.username || "User";
+            document.getElementById("userAvatar").src =
+              userData.profilePicture || "images/person.jpg";
+          }
+          initializeDataTable();
+          loadExpenses();
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      function initializeDataTable() {
+        table = $("#expensesTable").DataTable({
+          order: [[0, "desc"]],
+          pageLength: 10,
+          language: {
+            search: "Search expenses:",
+          },
+          columns: [
+            { data: "date" },
+            { data: "title" },
+            { data: "category" },
+            { data: "amount" },
+            { data: "receipt" },
+            { data: "notes" },
+            { data: "actions" },
+          ],
+        });
+      }
+
+      async function loadExpenses() {
+        try {
+          const expensesRef = collection(db, "expenses");
+          const q = query(
+            expensesRef,
+            where("userId", "==", currentUser.uid),
+            orderBy("date", "desc")
+          );
+          const querySnapshot = await getDocs(q);
+          table.clear();
+          querySnapshot.forEach((doc) => {
+            const expense = doc.data();
+            table.row
+              .add({
+                date: expense.date,
+                title: expense.title,
+                category: expense.category,
+                amount: `$${expense.amount.toFixed(2)}`,
+                receipt: expense.receiptUrl
+                  ? `<img src="${expense.receiptUrl}" class="receipt-thumbnail" data-bs-toggle="modal" data-bs-target="#receiptModal" onclick="showReceipt('${expense.receiptUrl}')" />`
+                  : "No receipt",
+                notes: expense.notes || "",
+                actions: `
+            <button class="btn btn-edit btn-sm me-2" onclick="editExpense('${doc.id}')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-delete btn-sm" onclick="deleteExpense('${doc.id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          `,
+              })
+              .draw(false);
+          });
+        } catch (error) {
+          console.error("Error loading expenses:", error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to load expenses. Please try again later.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+        }
+      }
+
+      window.deleteExpense = async (expenseId) => {
+        const result = await Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Yes, delete it!",
+          cancelButtonText: "Cancel",
+        });
+        if (result.isConfirmed) {
+          try {
+            await deleteDoc(doc(db, "expenses", expenseId));
+            await loadExpenses();
+            Swal.fire({
+              title: "Deleted!",
+              text: "Your expense has been deleted.",
+              icon: "success",
+              confirmButtonText: "OK",
+            });
+          } catch (error) {
+            console.error("Error deleting expense:", error);
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to delete expense. Please try again.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+        }
+      };
+
+      window.editExpense = (expenseId) => {
+        window.location.href = `add-expense.html?id=${expenseId}`;
+      };
+
+      window.showReceipt = (receiptUrl) => {
+        document.querySelector("#receiptModal .modal-image").src = receiptUrl;
+      };
+
+      $("#dateFilter, #categoryFilter").on("change", function () {
+        table.draw();
+      });
+
+      let timeoutId;
+      $("#minAmount, #maxAmount").on("input", function () {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          table.draw();
+        }, 500);
+      });
+
+      $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        const dateValue = $("#dateFilter").val();
+        const category = $("#categoryFilter").val();
+        const minAmount = parseFloat($("#minAmount").val()) || 0;
+        const maxAmount = parseFloat($("#maxAmount").val()) || Infinity;
+
+        const rowDate = new Date(data[0]);
+        const rowCategory = data[2];
+        const rowAmount = parseFloat(data[3].replace("$", ""));
+
+        let dateMatch = true;
+        if (dateValue !== "all") {
+          const today = new Date();
+          const daysAgo = today.setDate(today.getDate() - parseInt(dateValue));
+          dateMatch = rowDate >= new Date(daysAgo);
+        }
+
+        const categoryMatch = category === "all" || rowCategory === category;
+        const amountMatch = rowAmount >= minAmount && rowAmount <= maxAmount;
+
+        return dateMatch && categoryMatch && amountMatch;
+      });
+
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", async () => {
+          const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "You will be logged out of your account.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Logout",
+            cancelButtonText: "Cancel",
+          });
+          if (result.isConfirmed) {
+            try {
+              await signOut(auth);
+              window.location.href = "login.html";
+            } catch (error) {
+              console.error("Error logging out:", error);
+              Swal.fire({
+                title: "Error!",
+                text: "Failed to log out. Please try again.",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          }
+        });
+    </script>
+  </body>
+</html>

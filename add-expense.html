@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add New Expense - SpendWise</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/main.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a href="/" class="logo text-center">Spend<span>Wise.</span></a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.html">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="expenses.html">Expenses</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="reports.html">Reports</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="userDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <img
+                  id="userAvatar"
+                  src="images/loading.gif"
+                  alt="User Avatar"
+                  style="width: 30px; height: 30px; border-radius: 50%"
+                />
+                <span id="username"
+                  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span
+                >
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="profile.html">Profile</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" id="logoutBtn"
+                    >Logout</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="expense-form">
+        <h2 class="text-center mb-4">Add New Expense</h2>
+        <form id="expenseForm" class="needs-validation" novalidate>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="expenseTitle"
+                  placeholder="Expense Title"
+                  required
+                />
+                <label for="expenseTitle">Expense Title</label>
+                <div class="invalid-feedback">
+                  Please enter an expense title.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <input
+                  type="number"
+                  class="form-control"
+                  id="expenseAmount"
+                  placeholder="Amount"
+                  step="0.01"
+                  required
+                  min="0.01"
+                />
+                <label for="expenseAmount">Amount (&#x24;)</label>
+                <div class="invalid-feedback">
+                  Please enter a valid amount greater than 0.
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <select class="form-select" id="expenseCategory" required>
+                  <option value="">Select a category</option>
+                  <option value="Groceries">Groceries</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Bills">Bills</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Others">Others</option>
+                </select>
+                <label for="expenseCategory">Category</label>
+                <div class="invalid-feedback">Please select a category.</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-floating mb-3">
+                <input
+                  type="date"
+                  class="form-control"
+                  id="expenseDate"
+                  required
+                />
+                <label for="expenseDate">Date</label>
+                <div class="invalid-feedback">Please select a date.</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="form-floating mb-3">
+                <textarea
+                  class="form-control"
+                  id="expenseNotes"
+                  placeholder="Notes"
+                  style="height: 100px"
+                ></textarea>
+                <label for="expenseNotes">Notes (Optional)</label>
+              </div>
+            </div>
+            <div class="col-12 mt-4">
+              <button type="submit" class="submit-expense-btn">
+                Add Expense
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+      import {
+        auth,
+        db,
+        onAuthStateChanged,
+        signOut,
+      } from "./javascript/firebase.js";
+      import {
+        collection,
+        addDoc,
+        doc,
+        getDoc,
+        updateDoc,
+      } from "./javascript/firebase.js";
+
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const expenseForm = document.getElementById("expenseForm");
+      const expenseId = getQueryParam("id");
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const userId = user.uid;
+
+          if (expenseId) {
+            const docRef = doc(db, "expenses", expenseId);
+
+            getDoc(docRef)
+              .then((docSnap) => {
+                if (docSnap.exists()) {
+                  const expenseData = docSnap.data();
+                  document.getElementById("expenseTitle").value =
+                    expenseData.title || "";
+                  document.getElementById("expenseAmount").value =
+                    expenseData.amount || "";
+                  document.getElementById("expenseCategory").value =
+                    expenseData.category || "";
+                  document.getElementById("expenseDate").value =
+                    expenseData.date || "";
+                  document.getElementById("expenseNotes").value =
+                    expenseData.notes || "";
+                } else {
+                  console.error("No such document!");
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching document:", error);
+              });
+          }
+
+          expenseForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById("expenseTitle").value.trim();
+            const amount = parseFloat(
+              document.getElementById("expenseAmount").value.trim()
+            );
+            const category = document
+              .getElementById("expenseCategory")
+              .value.trim();
+            const date = document.getElementById("expenseDate").value.trim();
+            const notes = document.getElementById("expenseNotes").value.trim();
+
+            if (!title || !amount || !category || !date) {
+              Swal.fire({
+                title: "Error!",
+                text: "Please fill all required fields.",
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+              return;
+            }
+
+            try {
+              if (expenseId) {
+                const docRef = doc(db, "expenses", expenseId);
+                await updateDoc(docRef, {
+                  title,
+                  amount,
+                  category,
+                  date,
+                  notes,
+                });
+
+                Swal.fire({
+                  title: "Expense Updated!",
+                  text: "Your expense has been successfully updated.",
+                  icon: "success",
+                  confirmButtonText: "OK",
+                }).then(() => {
+                  window.location.href = "expenses.html";
+                });
+              } else {
+                await addDoc(collection(db, "expenses"), {
+                  userId,
+                  title,
+                  amount,
+                  category,
+                  date,
+                  notes,
+                });
+
+                Swal.fire({
+                  title: "Expense Added!",
+                  text: "Your expense has been successfully added.",
+                  icon: "success",
+                  confirmButtonText: "OK",
+                }).then(() => {
+                  expenseForm.reset();
+                });
+              }
+            } catch (error) {
+              console.error("Error handling expense:", error);
+              Swal.fire({
+                title: "Error!",
+                text: error.message,
+                icon: "error",
+                confirmButtonText: "OK",
+              });
+            }
+          });
+        } else {
+          console.error("User not authenticated.");
+          window.location.href = "login.html";
+        }
+      });
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById("username").textContent =
+              userData.username || "User";
+            document.getElementById("userAvatar").src =
+              userData.profilePicture || "images/person.jpg";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      const logoutBtn = document.getElementById("logoutBtn");
+      logoutBtn.addEventListener("click", async () => {
+        const confirmLogout = await Swal.fire({
+          title: "Are you sure?",
+          text: "You will be logged out of your account.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Logout",
+          cancelButtonText: "Cancel",
+        });
+
+        if (confirmLogout.isConfirmed) {
+          try {
+            await signOut(auth);
+            Swal.fire({
+              title: "Logged Out",
+              text: "You have successfully logged out.",
+              icon: "success",
+              confirmButtonText: "OK",
+            }).then(() => {
+              window.location.href = "login.html";
+            });
+          } catch (error) {
+            console.error("Error logging out:", error);
+            Swal.fire({
+              title: "Error!",
+              text: "Failed to log out. Please try again.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
